@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Document
+    </title>
+    <link rel='stylesheet' href=../../../css/index.css />
+    <link rel='stylesheet' href=../../../css/json.css /><link rel='stylesheet' href=../../../css/c.css /><link rel='stylesheet' href=../../../css/shell.css />
+    <link rel="icon" href="https://raw.githubusercontent.com/learner-lu/picbed/master/logo.png">
+</head>
+
+<body class="light">
+    <a href="https://github.com/luzhixing12345/gem5-doc.git" target="_blank" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    <div class="header-navigator"><ul><li><a href="#h1-0">基础语法</a><ul><li><a href="#h2-1">创建函数</a><ul><li><a href="#h3-2">确定默认参数名</a></li></ul><ul><li><a href="#h3-3">确定默认参数值</a></li></ul><ul><li><a href="#h3-4">导出变量</a></li></ul></li></ul><ul><li><a href="#h2-5">确定库名</a></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">基础语法</h1><p>对于上一节提到的例子我们稍稍修改一下,添加一个 namespace, 如下</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+int add(int i, int j) {
+    return i + j;
+}
+
+PYBIND11_MODULE(example, m) {
+    m.doc() = &quot;pybind11 example plugin&quot;; // optional module docstring
+    m.def(&quot;add&quot;, &amp;add, &quot;A function that adds two numbers&quot;);
+}</code></pre><p>很显然后面的 <code>PYBIND11_MODULE</code> 就是构建的核心模块. <code>add</code> 则是我们创建的函数</p><p><code>m.doc()</code> 是模块的文档,是一个可选的选项</p><p><code>m.def()</code> 是核心部分</p><h2 id="h2-1">创建函数</h2><h3 id="h3-2">确定默认参数名</h3><p>如果希望确定参数的名称,可以使用 <code>py::arg(&quot;i&quot;)</code> 来确定参数名</p><pre class="language-cpp"><code>m.def(&quot;add&quot;, &amp;add, &quot;A function which adds two numbers&quot;,
+      py::arg(&quot;i&quot;), py::arg(&quot;j&quot;));</code></pre><p>当然第三个参数是一个注释类型的,也可以省略</p><pre class="language-cpp"><code>m.def(&quot;add1&quot;, &amp;add, py::arg(&quot;i&quot;), py::arg(&quot;j&quot;));</code></pre><h3 id="h3-3">确定默认参数值</h3><p>如果想要函数绑定默认参数,如</p><pre class="language-cpp"><code>int add(int i = 1, int j = 2) {
+    return i + j;
+}</code></pre><p>只需修改为</p><pre class="language-cpp"><code>m.def(&quot;add&quot;, &amp;add, py::arg(&quot;i&quot;) = 1, py::arg(&quot;j&quot;) = 2);</code></pre><p>这样我们就可以在 python 代码中直接使用 <code>example.add()</code> <code>example.add(10)</code> 等多种灵活传参方式了</p><h3 id="h3-4">导出变量</h3><p>如果想要公开一个值,则使用attr注册到模块</p><pre class="language-cpp"><code>PYBIND11_MODULE(example, m) {
+    m.attr(&quot;the_answer&quot;) = 42;
+    py::object world = py::cast(&quot;World&quot;);
+    m.attr(&quot;what&quot;) = world;
+}</code></pre><p>python的结果为</p><pre class="language-python"><code>&gt;&gt;&gt; import example
+&gt;&gt;&gt; example.the_answer
+42
+&gt;&gt;&gt; example.what
+&#x27;World&#x27;</code></pre><h2 id="h2-5">确定库名</h2><p>PYBIND11_MODULE 宏有两个参数分别是导出的库名 name 和一个指代用的变量(通常写作 m), <b>与创建的文件名(example.cpp)无关</b></p><p>比如我们换一个名字 <code>aaa</code></p><pre class="language-cpp"><code>#define PYBIND11_MODULE(name, variable) ...
+
+PYBIND11_MODULE(aaa, m) {
+    m.def(&quot;add&quot;, &amp;add, &quot;A function that adds two numbers&quot;);
+}</code></pre><p>编译的动态链接库的名字也必须同时改名为 <code>aaa</code></p><pre class="language-shell"><code><span class="Token Program ID">g++</span><span class="Token SPACE"> </span><span class="Token OPTION">-O3</span><span class="Token SPACE"> </span><span class="Token OPTION">-Wall</span><span class="Token SPACE"> </span><span class="Token OPTION">-shared</span><span class="Token SPACE"> </span><span class="Token OPTION">-std</span><span class="Token ASSIGN">=</span><span class="Token ID">c++11</span><span class="Token SPACE"> </span><span class="Token OPTION">-fPIC</span><span class="Token SPACE"> </span><span class="Token DOLLAR">$</span><span class="Token BraceDepth-0 LPAREN">(</span><span class="Token Program ID">python3</span><span class="Token SPACE"> </span><span class="Token OPTION">-m</span><span class="Token SPACE"> </span><span class="Token ID">pybind11</span><span class="Token SPACE"> </span><span class="Token OPTION">--includes</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token SPACE"> </span><span class="Token ID">example.cpp</span><span class="Token SPACE"> </span><span class="Token OPTION">-o</span><span class="Token SPACE"> </span><span class="Token ID">aaa.so</span></code></pre><p>同使用python引用的的命名</p><pre class="language-python"><code>import aaa</code></pre><p>那我们有什么办法修改这个库名么? 当然有, 而日 gem5 就是这么做的, 在 <code>src/python/pybind_init.hh</code> 中有如下的一段宏</p><pre class="language-cpp"><code>#define GEM5_PYBIND_MODULE_INIT(name, func)                           \
+    namespace {                                                       \
+    ::PyObject *initializer() {                                       \
+        static ::pybind11::module_::module_def mod_def;               \
+        static auto m = ::pybind11::module_::create_extension_module( \
+            #name, nullptr, &amp;mod_def);                                \
+        func(m);                                                      \
+        m.inc_ref();                                                  \
+        return m.ptr();                                               \
+    }                                                                 \
+                                                                      \
+    ::gem5::PybindModuleInit modInit(#name, initializer);             \
+                                                                      \
+    }  // anonymous namespace</code></pre><p>这个宏被使用了两次, 分别在 <code>src/sim/init.cc</code> 和 <code>src/python/importer.cc</code> 中</p><pre class="language-cpp"><code>void EmbeddedPyBind::initAll(py::module_ &amp;_m5) {
+    ...
+}
+GEM5_PYBIND_MODULE_INIT(_m5, EmbeddedPyBind::initAll)
+
+void importerInit(py::module_ &amp;m) {
+    ...
+}
+GEM5_PYBIND_MODULE_INIT(importer, importerInit)</code></pre><p><code>GEM5_PYBIND_MODULE_INIT</code> 宏可以从名字中看出其作用是生成一个用于在Python中导入C++扩展模块的初始化函数. 具体来说，该宏定义了一个匿名命名空间，其中定义了一个返回Python对象的函数 initializer()，该函数通过调用 pybind11 库中的函数创建一个名为 name 的扩展模块，然后将其传递给函数 func 进行初始化。初始化完成后，将增加模块的引用计数(inc_ref)，并返回模块的指针，从而使该模块在Python中保持活动状态。</p><p>该宏还定义了一个名为 modInit 的 gem5::PybindModuleInit 对象，该对象通过构造函数接受扩展模块的名称和 initializer() 函数，并注册该模块的初始化函数，以便在Python中使用时自动调用。</p><p><b>简单来说</b>, 可以当在 Python 中使用 import importer 来导入该模块，会自动调用 importerInit() 函数进行初始化。之后就可以在 Python 环境中使用 importer 模块中提供的功能了</p><p>在 gem5 源码实现中我们会再次提及此部分的具体内容, 请读者留意</p></div>
+    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../gem5的编译和使用/gem5简介" >gem5的编译和使用</a><ul><li><a href="../../gem5的编译和使用/gem5简介" >gem5简介</a></li></ul><ul><li><a href="../../gem5的编译和使用/安装与构建" >安装与构建</a></li></ul><ul><li><a href="../../gem5的编译和使用/第一个程序" >第一个程序</a></li></ul><ul><li><a href="../../gem5的编译和使用/全系统模拟" >全系统模拟</a></li></ul><ul><li><a href="../../gem5的编译和使用/linux-kernel构建" >linux-kernel构建</a></li></ul><ul><li><a href="../../gem5的编译和使用/性能测试与统计结果" >性能测试与统计结果</a></li></ul></li></ul><ul><li><a href="../../pybind11/环境配置" >pybind11</a><ul><li><a href="../../pybind11/环境配置" >环境配置</a></li></ul><ul><li><a href="../../pybind11/基础语法" >基础语法</a></li></ul><ul><li><a href="../../pybind11/面向对象" >面向对象</a></li></ul></li></ul><ul><li><a href="../../gem5源码分析/环境配置" >gem5源码分析</a><ul><li><a href="../../gem5源码分析/环境配置" >环境配置</a></li></ul><ul><li><a href="../../gem5源码分析/scons编译流程" >scons编译流程</a></li></ul><ul><li><a href="../../gem5源码分析/gem5启动流程" >gem5启动流程</a></li></ul><ul><li><a href="../../gem5源码分析/SimObject" >SimObject</a></li></ul></li></ul><ul><li><a href="../../cxl/研究进展" >cxl</a><ul><li><a href="../../cxl/研究进展" >研究进展</a></li></ul><ul><li><a href="../../cxl/cxl设备实现" >cxl设备实现</a></li></ul></li></ul></div>
+    <div class="zood"><a class="" href="https://github.com/luzhixing12345/zood" target="_blank">zood</a></div>
+    <script type="text/javascript" src="../../../js/next_front.js"></script><script>addLink("../../pybind11/环境配置","../../pybind11/面向对象","ab")</script><script type="text/javascript" src="../../../js/change_mode.js"></script><script>addChangeModeButton("../../../img/sun.png","../../../img/moon.png")</script><script type="text/javascript" src="../../../js/copy_code.js"></script><script>addCodeCopy("../../../img/before_copy.png","../../../img/after_copy.png")</script><script type="text/javascript" src="../../../js/navigator.js"></script><script type="text/javascript" src="../../../js/picture_preview.js"></script><script type="text/javascript" src="../../../js/global_js_configuration.js"></script>
+</body>
+
+</html>

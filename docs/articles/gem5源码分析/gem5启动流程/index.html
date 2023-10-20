@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Document
+    </title>
+    <link rel='stylesheet' href=../../../css/index.css />
+    <link rel='stylesheet' href=../../../css/json.css /><link rel='stylesheet' href=../../../css/c.css /><link rel='stylesheet' href=../../../css/shell.css />
+    <link rel="icon" href="https://raw.githubusercontent.com/learner-lu/picbed/master/logo.png">
+</head>
+
+<body class="light">
+    <a href="https://github.com/luzhixing12345/gem5-doc.git" target="_blank" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    <div class="header-navigator"><ul><li><a href="#h1-0">gem5启动流程</a></li></ul></div><div class='markdown-body'><h1 id="h1-0">gem5启动流程</h1><p>整个模拟器是由 C++ 与 python 混合编程, 这里期望读者具有 Python C API 的使用经验, 也要求读者具备一定的现代 C++ 语法阅读能力</p><p><b>开始本节阅读之前, 请务必阅读 pybind11 部分并了解其如何实现 python 与 C++ 之前的模块链接</b></p><p>gem5 程序运行的主入口是位于 <code>src/sim/main.cc</code> 的 main 函数, 其实现如下所示</p><pre class="language-cpp"><code>int main(int argc, char **argv) {
+    // 初始化一些变了
+    initSignals();
+    // Convert argv[0] to a wchar_t string, using python&#x27;s locale and cleanup
+    // functions.
+    std::unique_ptr&lt;wchar_t[], decltype(&amp;PyMem_RawFree)&gt; program(
+        Py_DecodeLocale(argv[0], nullptr),
+        &amp;PyMem_RawFree);
+    // This can help python find libraries at run time relative to this binary.
+    // It&#x27;s probably not necessary, but is mostly harmless and might be useful.
+    Py_SetProgramName(program.get());
+    py::scoped_interpreter guard(true, argc, argv);
+    auto importer = py::module_::import(&quot;importer&quot;);
+    importer.attr(&quot;install&quot;)();
+    try {
+        py::module_::import(&quot;m5&quot;).attr(&quot;main&quot;)();
+    } catch (py::error_already_set &amp;e) {
+        if (e.matches(PyExc_SystemExit))
+            return e.value().attr(&quot;code&quot;).cast&lt;int&gt;();
+        std::cerr &lt;&lt; e.what();
+        return 1;
+    }
+    return 0;
+}</code></pre><p>Py_DecodeLocale是Python提供的一个函数,用于将字符串转换为本地编码(Locale encoding)下的宽字符形式.本地编码是指当前操作系统的默认字符编码,例如在Windows系统上,它通常是GBK或者UTF-8(取决于系统设置).该函数的函数原型如下</p><pre class="language-c"><code><span class="Typedefine Keyword FunctionReturnType Token TypeSpecifier TYPEDEF_ID">wchar_t</span><span class="Token Declarator Pointer POINTER">*</span><span class="Token Declarator Pointer SPACE"> </span><span class="Token DirectDeclaractor FunctionName Identifier ID">Py_DecodeLocale</span><span class="Token DirectDeclaractor Declarator BraceDepth-0 LPAREN">(</span><span class="Token QualifyType Keyword CONST">const</span><span class="Token QualifyType Keyword SPACE"> </span><span class="Token TypeSpecifier BaseType Keyword CHAR">char</span><span class="Token TypeSpecifier BaseType Keyword SPACE"> </span><span class="Token Declarator Pointer POINTER">*</span><span class="Token DirectDeclaractor Identifier ID">arg</span><span class="Token COMMA">,</span><span class="Token SPACE"> </span><span class="Token Typedefine TypeSpecifier Keyword TYPEDEF_ID">size_t</span><span class="Token Typedefine TypeSpecifier Keyword SPACE"> </span><span class="Token Declarator Pointer POINTER">*</span><span class="Token DirectDeclaractor Identifier ID">size</span><span class="Token DirectDeclaractor Declarator BraceDepth-0 RPAREN">)</span><span class="Token Declaration SEMI">;</span></code></pre><blockquote><p>其中 arg 是要转换的字符串,size是指向输出大小的指针.函数返回一个指向宽字符字符串的指针.如果转换失败,则返回NULL,并将errno设置为相应的错误代码.</p></blockquote><p>该函数通常用于将命令行参数或环境变量等本地编码下的字符串转换为Python程序中使用的Unicode字符串.在Python 3中,字符串默认为Unicode编码.因此,<b>在与Python C API一起使用时,需要将本地编码的字符串转换为Unicode字符串.</b></p></div>
+    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../gem5的编译和使用/gem5简介" >gem5的编译和使用</a><ul><li><a href="../../gem5的编译和使用/gem5简介" >gem5简介</a></li></ul><ul><li><a href="../../gem5的编译和使用/安装与构建" >安装与构建</a></li></ul><ul><li><a href="../../gem5的编译和使用/第一个程序" >第一个程序</a></li></ul><ul><li><a href="../../gem5的编译和使用/全系统模拟" >全系统模拟</a></li></ul><ul><li><a href="../../gem5的编译和使用/linux-kernel构建" >linux-kernel构建</a></li></ul><ul><li><a href="../../gem5的编译和使用/性能测试与统计结果" >性能测试与统计结果</a></li></ul></li></ul><ul><li><a href="../../pybind11/环境配置" >pybind11</a><ul><li><a href="../../pybind11/环境配置" >环境配置</a></li></ul><ul><li><a href="../../pybind11/基础语法" >基础语法</a></li></ul><ul><li><a href="../../pybind11/面向对象" >面向对象</a></li></ul></li></ul><ul><li><a href="../../gem5源码分析/环境配置" >gem5源码分析</a><ul><li><a href="../../gem5源码分析/环境配置" >环境配置</a></li></ul><ul><li><a href="../../gem5源码分析/scons编译流程" >scons编译流程</a></li></ul><ul><li><a href="../../gem5源码分析/gem5启动流程" >gem5启动流程</a></li></ul><ul><li><a href="../../gem5源码分析/SimObject" >SimObject</a></li></ul></li></ul><ul><li><a href="../../cxl/研究进展" >cxl</a><ul><li><a href="../../cxl/研究进展" >研究进展</a></li></ul><ul><li><a href="../../cxl/cxl设备实现" >cxl设备实现</a></li></ul></li></ul></div>
+    <div class="zood"><a class="" href="https://github.com/luzhixing12345/zood" target="_blank">zood</a></div>
+    <script type="text/javascript" src="../../../js/next_front.js"></script><script>addLink("../../gem5源码分析/scons编译流程","../../gem5源码分析/SimObject","ab")</script><script type="text/javascript" src="../../../js/change_mode.js"></script><script>addChangeModeButton("../../../img/sun.png","../../../img/moon.png")</script><script type="text/javascript" src="../../../js/copy_code.js"></script><script>addCodeCopy("../../../img/before_copy.png","../../../img/after_copy.png")</script><script type="text/javascript" src="../../../js/navigator.js"></script><script type="text/javascript" src="../../../js/picture_preview.js"></script><script type="text/javascript" src="../../../js/global_js_configuration.js"></script>
+</body>
+
+</html>

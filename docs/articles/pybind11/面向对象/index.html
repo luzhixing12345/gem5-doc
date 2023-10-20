@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Document
+    </title>
+    <link rel='stylesheet' href=../../../css/index.css />
+    <link rel='stylesheet' href=../../../css/json.css /><link rel='stylesheet' href=../../../css/c.css /><link rel='stylesheet' href=../../../css/shell.css />
+    <link rel="icon" href="https://raw.githubusercontent.com/learner-lu/picbed/master/logo.png">
+</head>
+
+<body class="light">
+    <a href="https://github.com/luzhixing12345/gem5-doc.git" target="_blank" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    <div class="header-navigator"><ul><li><a href="#h1-0">面向对象</a><ul><li><a href="#h2-1">面向对象</a></li></ul><ul><li><a href="#h2-2">魔法函数</a></li></ul><ul><li><a href="#h2-3">静态字段</a></li></ul><ul><li><a href="#h2-4">private</a></li></ul><ul><li><a href="#h2-5">动态属性</a></li></ul><ul><li><a href="#h2-6">继承</a></li></ul><ul><li><a href="#h2-7">多态与虚函数</a></li></ul><ul><li><a href="#h2-8">重载</a></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">面向对象</h1><h2 id="h2-1">面向对象</h2><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    void setName(const std::string &amp;name_) { name = name_; }
+    const std::string &amp;getName() const { return name; }
+    std::string name;
+};
+
+PYBIND11_MODULE(classs, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def(&quot;setName&quot;, &amp;Pet::setName)
+        .def(&quot;getName&quot;, &amp;Pet::getName);
+}</code></pre><p>绑定构造函数,定义的函数的方式如上</p><p>编译(文件名为class.cpp)</p><pre class="language-shell"><code><span class="Token Program ID">g++</span><span class="Token SPACE"> </span><span class="Token OPTION">-O3</span><span class="Token SPACE"> </span><span class="Token OPTION">-Wall</span><span class="Token SPACE"> </span><span class="Token OPTION">-shared</span><span class="Token SPACE"> </span><span class="Token OPTION">-std</span><span class="Token ASSIGN">=</span><span class="Token ID">c++11</span><span class="Token SPACE"> </span><span class="Token OPTION">-fPIC</span><span class="Token SPACE"> </span><span class="Token ID">class.cpp</span><span class="Token SPACE"> </span><span class="Token OPTION">-o</span><span class="Token SPACE"> </span><span class="Token ID">classs.so</span></code></pre><pre class="language-shell"><code><span class="Token BraceDepth-0 LPAREN">(</span><span class="Token Program ID">base</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token SPACE"> </span><span class="Token HOST_NAME">root@hecs-67846</span><span class="Token COLON">:</span><span class="Token DIR_PATH">~/pybind11</span><span class="Token TAG"></span><span class="Token SPACE"> </span><span class="Token Program ID">python</span><span class="Token LF">
+</span><span class="Token Program ID">Python</span><span class="Token SPACE"> </span><span class="Token NUMBER">3.9</span><span class="Token Function ID">.12</span><span class="Token SPACE"> </span><span class="Token BraceDepth-0 LPAREN">(</span><span class="Token ID">main</span><span class="Token COMMA">,</span><span class="Token SPACE"> </span><span class="Token ID">Apr</span><span class="Token SPACE">  </span><span class="Token NUMBER">5</span><span class="Token SPACE"> </span><span class="Token NUMBER">2022</span><span class="Token COMMA">,</span><span class="Token SPACE"> </span><span class="Token NUMBER">06</span><span class="Token COLON">:</span><span class="Token NUMBER">56</span><span class="Token COLON">:</span><span class="Token NUMBER">58</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token LF">
+</span><span class="Token BraceDepth-0 LSQUAR_PAREN">[</span><span class="Token Program ID">GCC</span><span class="Token SPACE"> </span><span class="Token NUMBER">7.5</span><span class="Token ID">.0</span><span class="Token BraceDepth-0 RSQUAR_PAREN">]</span><span class="Token SPACE"> </span><span class="Token COLON">:</span><span class="Token COLON">:</span><span class="Token SPACE"> </span><span class="Token ID">Anaconda</span><span class="Token COMMA">,</span><span class="Token SPACE"> </span><span class="Token ID">Inc.</span><span class="Token SPACE"> </span><span class="Token ID">on</span><span class="Token SPACE"> </span><span class="Token ID">linux</span><span class="Token LF">
+</span><span class="Token Program ID">Type</span><span class="Token SPACE"> </span><span class="String Token STRING">&quot;help&quot;</span><span class="Token COMMA">,</span><span class="Token SPACE"> </span><span class="String Token STRING">&quot;copyright&quot;</span><span class="Token COMMA">,</span><span class="Token SPACE"> </span><span class="String Token STRING">&quot;credits&quot;</span><span class="Token SPACE"> </span><span class="Token ID">or</span><span class="Token SPACE"> </span><span class="String Token STRING">&quot;license&quot;</span><span class="Token SPACE"> </span><span class="Token Keyword FOR">for</span><span class="Token SPACE"> </span><span class="Token ID">more</span><span class="Token SPACE"> </span><span class="Token ID">information.</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token Program ID">import</span><span class="Token SPACE"> </span><span class="Token ID">classs</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token Variant Program ID">p</span><span class="Token SPACE"> </span><span class="Token ASSIGN">=</span><span class="Token SPACE"> </span><span class="Token Function ID">classs.Pet</span><span class="Token BraceDepth-0 LPAREN">(</span><span class="String Token STRING">&quot;Molly&quot;</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token Program Function ID">print</span><span class="Token BraceDepth-0 LPAREN">(</span><span class="Token ID">p</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token LF">
+</span><span class="Token REDIRECT_FROM">&lt;</span><span class="Token Program ID">classs.Pet</span><span class="Token SPACE"> </span><span class="Token ID">object</span><span class="Token SPACE"> </span><span class="Token ID">at</span><span class="Token SPACE"> </span><span class="Token NUMBER">0x7fe21b234030</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token Program Function ID">p.getName</span><span class="Token BraceDepth-0 LPAREN">(</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token LF">
+</span><span class="Token APOSTROPHE">&#x27;</span><span class="Token Program ID">Molly</span><span class="Token APOSTROPHE">&#x27;</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token Program Function ID">p.setName</span><span class="Token BraceDepth-0 LPAREN">(</span><span class="String Token STRING">&quot;Charly&quot;</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token Program Function ID">p.getName</span><span class="Token BraceDepth-0 LPAREN">(</span><span class="Token BraceDepth-0 RPAREN">)</span><span class="Token LF">
+</span><span class="Token APOSTROPHE">&#x27;</span><span class="Token Program ID">Charly</span><span class="Token APOSTROPHE">&#x27;</span><span class="Token LF">
+</span><span class="Token SHR">&gt;&gt;</span><span class="Token REDIRECT_TO">&gt;</span><span class="Token SPACE"> </span><span class="Token QUSTION">?</span></code></pre><h2 id="h2-2">魔法函数</h2><p>对于python的一些魔法函数,比如 <code>__repr__</code> 可以借助lambda表达式实现</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    void setName(const std::string &amp;name_) { name = name_; }
+    const std::string &amp;getName() const { return name; }
+    std::string name;
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def(&quot;setName&quot;, &amp;Pet::setName)
+        .def(&quot;getName&quot;, &amp;Pet::getName)
+        .def(&quot;__repr__&quot;,
+            [](const Pet &amp;a) {
+                return &quot;__repr__ named &#x27;&quot; + a.name;
+            }
+        );
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.Pet(&quot;Monika&quot;)
+print(p)
+# __repr__ named &#x27;Monika</code></pre><p>并不是所有魔法函数都可以,实际上也没有必要非得去使用</p><h2 id="h2-3">静态字段</h2><p>可以使用 <code>class_::def_readwrite()</code> 直接暴露字段</p><blockquote><p>也有只读方法 <code>class_::def_readonly()</code></p></blockquote><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    void setName(const std::string &amp;name_) { name = name_; }
+    const std::string &amp;getName() const { return name; }
+    std::string name;
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def(&quot;setName&quot;, &amp;Pet::setName)
+        .def(&quot;getName&quot;, &amp;Pet::getName)
+        .def_readwrite(&quot;name&quot;, &amp;Pet::name);
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.Pet(&quot;Monika&quot;)
+print(p.getName())
+p.name = &quot;Jack&quot;
+print(p.name)
+
+# Monika
+# Jack</code></pre><h2 id="h2-4">private</h2><p>对于private变量,如果其存在getter和setter也可以使用 <code>class_::def_property()</code> 透明地调用 setter 和 getter 函数</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    void setName(const std::string &amp;name_) {
+        printf(&quot;called setter\n&quot;);
+        name = name_;
+    }
+    const std::string &amp;getName() const {
+        printf(&quot;called getter\n&quot;);
+        return name;
+    }
+    std::string name;
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def_property(&quot;name&quot;, &amp;Pet::getName, &amp;Pet::setName);
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.Pet(&quot;Monika&quot;)
+p.name = &quot;Jack&quot;
+print(p.name)
+
+# called setter
+# called getter
+# Jack</code></pre><blockquote><p>对于只写属性可以使用nullptr</p><pre class="language-cpp"><code>.def_property(&quot;name&quot;, nullptr, &amp;Pet::setName);</code></pre><p>除此之外还有一些类似的函数用于<a href="https://pybind11.readthedocs.io/en/stable/advanced/classes.html#static-properties" target="_blank">静态属性</a></p></blockquote><h2 id="h2-5">动态属性</h2><p>python支持动态属性添加,但是pybind11默认不支持,需要添加构造函数 <code>py::dynamic_attr()</code> 标记</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    void setName(const std::string &amp;name_) { name = name_;}
+    const std::string &amp;getName() const { return name;}
+    std::string name;
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;,py::dynamic_attr())
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def_property(&quot;name&quot;, &amp;Pet::getName, &amp;Pet::setName);
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.Pet(&quot;Monika&quot;)
+p.name = &quot;Jack&quot;
+p.age = 18
+print(p.name)
+print(p.age)
+
+# Jack
+# 18</code></pre><pre class="language-tip"><code>启用动态属性会造成运行耗时增加,不仅仅因为添加了 `__dict__` , 还因为需要激活垃圾回收跟踪.
+
+默认情况下，pybind11 类比本机 Python 类更高效。启用动态属性只会使它们处于同等水平</code></pre><h2 id="h2-6">继承</h2><p>对于继承关系的构建有两种方式,这里只推荐第一种方式</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    std::string name;
+};
+
+struct Dog : Pet {
+    Dog(const std::string &amp;name) : Pet(name) { }
+    std::string bark() const { return &quot;woof!&quot;; }
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+    .def(py::init&lt;const std::string &amp;&gt;())
+    .def_readwrite(&quot;name&quot;, &amp;Pet::name);
+    // Method 1: template parameter:
+    py::class_&lt;Dog, Pet&gt;(m, &quot;Dog&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def(&quot;bark&quot;, &amp;Dog::bark);
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.Dog(&quot;Monika&quot;)
+print(p.name)
+print(p.bark())
+
+# Monika
+# woof!</code></pre><h2 id="h2-7">多态与虚函数</h2><p>pybind11种使用多态的情况与C++相同</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name) : name(name) { }
+    std::string name;
+};
+
+struct Dog : Pet {
+    Dog(const std::string &amp;name) : Pet(name) { }
+    std::string bark() const { return &quot;woof!&quot;; }
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+    .def(py::init&lt;const std::string &amp;&gt;())
+    .def_readwrite(&quot;name&quot;, &amp;Pet::name);
+    // Method 1: template parameter:
+    py::class_&lt;Dog, Pet&gt;(m, &quot;Dog&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def(&quot;bark&quot;, &amp;Dog::bark);
+    m.def(&quot;pet_store&quot;, []() { return std::unique_ptr&lt;Pet&gt;(new Dog(&quot;Molly&quot;)); });
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.pet_store()
+print(type(p))
+print(p.name)
+print(p.bark())
+
+# output
+&lt;class &#x27;cla.Pet&#x27;&gt;
+Molly
+Traceback (most recent call last):
+  File &quot;/root/pybind11-code/test.py&quot;, line 6, in &lt;module&gt;
+    print(p.bark())
+AttributeError: &#x27;cla.Pet&#x27; object has no attribute &#x27;bark&#x27;</code></pre><p>该函数返回了一个Dog实例，但因为它是基指针后面的非多态类型. 这里的 <code>std::unique_ptr&lt;Pet&gt;</code> 指针类型无法使用子类的bark函数,在 C++ 中，只有至少有一个虚函数的类型才被认为是多态的，pybind11 会自动识别这一点</p><p>添加虚函数即可解决此问题,这与C++的用法一致</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    virtual ~Pet() = default;
+    Pet(const std::string &amp;name) : name(name) { }
+    std::string name;
+};
+
+struct Dog : Pet {
+    Dog(const std::string &amp;name) : Pet(name) { }
+    std::string bark() const { return &quot;woof!&quot;; }
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+    .def(py::init&lt;const std::string &amp;&gt;())
+    .def_readwrite(&quot;name&quot;, &amp;Pet::name);
+    // Method 1: template parameter:
+    py::class_&lt;Dog, Pet&gt;(m, &quot;Dog&quot;)
+        .def(py::init&lt;const std::string &amp;&gt;())
+        .def(&quot;bark&quot;, &amp;Dog::bark);
+    m.def(&quot;pet_store&quot;, []() { return std::unique_ptr&lt;Pet&gt;(new Dog(&quot;Molly&quot;)); });
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.pet_store()
+print(type(p))
+print(p.name)
+print(p.bark())
+
+# &lt;class &#x27;cla.Dog&#x27;&gt;
+# Molly
+# woof!</code></pre><h2 id="h2-8">重载</h2><p>对于C++中的重载</p><pre class="language-cpp"><code>struct Pet {
+    Pet(const std::string &amp;name, int age) : name(name), age(age) { }
+    void set(int age_) { age = age_; }
+    void set(const std::string &amp;name_) { name = name_; }
+    std::string name;
+    int age;
+};</code></pre><p>直接尝试绑定Pet::set将导致错误，因为编译器不知道用户打算选择哪种方法,可以使用函数指针来消除歧义</p><pre class="language-cpp"><code>#include &lt;pybind11/pybind11.h&gt;
+
+namespace py = pybind11;
+
+struct Pet {
+    Pet(const std::string &amp;name, int age) : name(name), age(age) { }
+    void set(int age_) {
+        printf(&quot;called set of age\n&quot;);
+        age = age_;
+    }
+    void set(const std::string &amp;name_) {
+        printf(&quot;called set of name\n&quot;);
+        name = name_;
+    }
+    std::string name;
+    int age;
+};
+
+PYBIND11_MODULE(cla, m) {
+    py::class_&lt;Pet&gt;(m, &quot;Pet&quot;)
+        .def(py::init&lt;const std::string &amp;, int&gt;())
+        .def(&quot;set&quot;, static_cast&lt;void (Pet::*)(int)&gt;(&amp;Pet::set), &quot;Set the pet&#x27;s age&quot;)
+        .def(&quot;set&quot;, static_cast&lt;void (Pet::*)(const std::string &amp;)&gt;(&amp;Pet::set), &quot;Set the pet&#x27;s name&quot;);
+}</code></pre><pre class="language-python"><code>import cla
+
+p = cla.Pet(&quot;Monika&quot;,18)
+p.set(&quot;Billy&quot;)
+p.set(20)
+
+# called set of name
+# called set of age</code></pre></div>
+    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../gem5的编译和使用/gem5简介" >gem5的编译和使用</a><ul><li><a href="../../gem5的编译和使用/gem5简介" >gem5简介</a></li></ul><ul><li><a href="../../gem5的编译和使用/安装与构建" >安装与构建</a></li></ul><ul><li><a href="../../gem5的编译和使用/第一个程序" >第一个程序</a></li></ul><ul><li><a href="../../gem5的编译和使用/全系统模拟" >全系统模拟</a></li></ul><ul><li><a href="../../gem5的编译和使用/linux-kernel构建" >linux-kernel构建</a></li></ul><ul><li><a href="../../gem5的编译和使用/性能测试与统计结果" >性能测试与统计结果</a></li></ul></li></ul><ul><li><a href="../../pybind11/环境配置" >pybind11</a><ul><li><a href="../../pybind11/环境配置" >环境配置</a></li></ul><ul><li><a href="../../pybind11/基础语法" >基础语法</a></li></ul><ul><li><a href="../../pybind11/面向对象" >面向对象</a></li></ul></li></ul><ul><li><a href="../../gem5源码分析/环境配置" >gem5源码分析</a><ul><li><a href="../../gem5源码分析/环境配置" >环境配置</a></li></ul><ul><li><a href="../../gem5源码分析/scons编译流程" >scons编译流程</a></li></ul><ul><li><a href="../../gem5源码分析/gem5启动流程" >gem5启动流程</a></li></ul><ul><li><a href="../../gem5源码分析/SimObject" >SimObject</a></li></ul></li></ul><ul><li><a href="../../cxl/研究进展" >cxl</a><ul><li><a href="../../cxl/研究进展" >研究进展</a></li></ul><ul><li><a href="../../cxl/cxl设备实现" >cxl设备实现</a></li></ul></li></ul></div>
+    <div class="zood"><a class="" href="https://github.com/luzhixing12345/zood" target="_blank">zood</a></div>
+    <script type="text/javascript" src="../../../js/next_front.js"></script><script>addLink("../../pybind11/基础语法","../../gem5源码分析/环境配置","ab")</script><script type="text/javascript" src="../../../js/change_mode.js"></script><script>addChangeModeButton("../../../img/sun.png","../../../img/moon.png")</script><script type="text/javascript" src="../../../js/copy_code.js"></script><script>addCodeCopy("../../../img/before_copy.png","../../../img/after_copy.png")</script><script type="text/javascript" src="../../../js/navigator.js"></script><script type="text/javascript" src="../../../js/picture_preview.js"></script><script type="text/javascript" src="../../../js/global_js_configuration.js"></script>
+</body>
+
+</html>
