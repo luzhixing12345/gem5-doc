@@ -16,6 +16,3 @@ gem5源码分析:
 - scons编译流程: 2
 - gem5启动流程: 3
 - SimObject: 4
-cxl:
-- 研究进展: 1
-- cxl设备实现: 2
